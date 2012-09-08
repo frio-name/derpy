@@ -1,3 +1,5 @@
+SHELL=/bin/bash
+
 setup:
 	mkdir build
 	mkdir -p dist/build/static/{css,js,img}
@@ -18,6 +20,7 @@ devel:
 prod:
 	cabal-dev build
 
-refresh:
+update:
 	git pull
-	... 
+
+refresh: update prod static
