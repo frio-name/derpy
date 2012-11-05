@@ -29,7 +29,7 @@ runServer config =
       let renderedEntries = catMaybes renderableEntries
       case renderedEntries of
         []   -> (html . renderHtml . T.page          (pageOptions config)) $ T.info "No entries"
-        es   -> (html . renderHtml . T.renderEntries (pageOptions config)) $ take 6 es
+        es   -> (html . renderHtml . T.renderEntries (pageOptions config)) $ take 6 $ reverse es
     
     --get "/blog/entries/:year/:month/:day/:slug/" $ \ year month day slug -> do
     --  let reference = Entry.Reference year month day slug
