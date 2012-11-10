@@ -28,11 +28,32 @@ Executable derpy
                      , filepath
                      , http-types
                      , mtl
-                     , pandoc
+                     , pandoc==1.9.4.3
                      , parsec
                      , scotty
                      , text
                      , wai-middleware-static
-  Ghc-options:         -Wall -fforce-recomp -O2 -static -threaded
+  Ghc-options:         -Wall -O2 -static -threaded
   Hs-source-dirs:    src/hs
   Extensions:        CPP
+
+test-suite spec
+  type:           exitcode-stdio-1.0
+  main-is:        Spec.hs
+  Build-depends:       aeson
+                     , base
+                     , blaze-html
+                     , bytestring
+                     , directory
+                     , filepath
+                     , hspec
+                     , http-types
+                     , mtl
+                     , pandoc==1.9.4.3
+                     , parsec
+                     , scotty
+                     , text
+                     , wai-middleware-static
+  Hs-source-dirs:      src/hs
+                     , test/hs
+
