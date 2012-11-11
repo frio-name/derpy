@@ -2,50 +2,80 @@
 
 module Models.Entry        (Entry (..), list, retrieve) where
 
-import Data.List           (intercalate)
-import System.Directory    (doesFileExist, getDirectoryContents)
-import System.FilePath     ((</>))
-import System.IO           ()
-import Text.Blaze.Internal (Html)
-import Text.Pandoc
+import           Data.List                   (sort)
+import           Data.String.Utils           (endswith, split)
+import           Data.Time                   (Day)
+import           Data.Time.Calendar          (fromGregorian, showGregorian)
+import qualified Framework.Model             as M
+import           Framework.Template          (Renderable (..))
+import           System.Directory            (doesFileExist, getDirectoryContents)
+import           System.IO                   ()
+import           Text.Pandoc
+import           Text.Blaze                  ((!), toHtml)
+import           Text.Blaze.Internal         (Html)
+import qualified Text.Blaze.Html5            as H
+import qualified Text.Blaze.Html5.Attributes as A
 
-class Loadable a where
-  fname :: a -> FilePath
-  path  :: FilePath -> a -> FilePath
-  path source f = source </> fname f
+data Markup = Markdown | LiterateHaskell | Unparseable
+            deriving (Eq, Show)
 
-data Entry = Entry { year     :: String
-                   , month    :: String
-                   , day      :: String
-                   , slug     :: String }
+data Entry = Entry { title :: String
+                   , body  :: String
+                   , publishedOn :: Day
+                   , markup :: Markup }
+                   deriving (Eq, Show)
 
-render :: String -> Html
-render = 
-    writeHtml entryWriterOpts . readMarkdown defaultParserState
-    where entryWriterOpts = defaultWriterOptions { writerHtml5 = True
-                                                 , writerHighlight = True
-                                                 }
-
-instance Loadable FilePath where
+instance M.Loadable FilePath where
   fname = id
 
-instance Loadable Entry where
-  fname (Entry y m d s) = intercalate "-" [y, m, d, s] ++ ext
+instance Renderable Entry where
+  render (Entry _ b _ Markdown)        = (writeHtml entryWriterOpts . readMarkdown defaultParserState) b
+  render (Entry _ b _ LiterateHaskell) = (writeHtml entryWriterOpts . readMarkdown defaultParserState
+                                                                                       { stateLiterateHaskell = True }) b
+  render (Entry _ _ _ Unparseable)     = toHtml ("" :: String)
 
-ext :: String
-ext = ".md"
+instance M.Dated Entry where
+  publishedOn = publishedOn
 
-retrieve :: Loadable a => FilePath -> a -> IO (Maybe Html)
+
+renderEntry entry = do
+  H.div ! A.class_ "entry" $ do
+    entry
+    H.span ! A.class_ "meta" $ (H.toHtml . showGregorian . publishedOn) entry
+  
+entryWriterOpts :: WriterOptions
+entryWriterOpts = defaultWriterOptions { writerHtml5 = True
+                                       , writerHighlight = True }
+
+determineMarkup :: String -> Markup
+determineMarkup fileName
+                | endswith ".md"  fileName = Markdown
+                | endswith ".lhs" fileName = LiterateHaskell
+                | otherwise                = Unparseable
+
+determineDate :: String -> Day
+determineDate filename = fromGregorian year month day
+                       where [y, m, d] = take 3 $ split "-" filename
+                             year      = read y :: Integer
+                             month     = read m :: Int
+                             day       = read d :: Int
+                
+retrieve :: FilePath -> FilePath -> IO (Maybe Html)
 retrieve source loadable = do
   fileExists <- doesFileExist filePath
   if fileExists
     then do
-      entry <- readFile filePath
-      return $ Just $ render entry
+      contents <- readFile filePath
+      let entry = Entry { title       = "Unimplemented"
+                        , body        = contents
+                        , publishedOn = determineDate   loadable
+                        , markup      = determineMarkup filePath
+                        }
+      return $ Just $ renderEntry entry
     else return Nothing
-  where filePath = path source loadable
+  where filePath = M.path source loadable
 
 -- I don't like this -- I'd like it to be a Loadable a => FilePath -> IO [a]
 -- but oh well, let's just get it up and running for now...
 list :: FilePath -> IO [FilePath]
-list path = getDirectoryContents path >>= (return . sort)
+list p = getDirectoryContents p >>= (return . sort)

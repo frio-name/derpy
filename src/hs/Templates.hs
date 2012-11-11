@@ -10,27 +10,16 @@ import           System.FilePath                ((</>))
 import qualified Text.Blaze.Html5            as H
 import qualified Text.Blaze.Html5.Attributes as A
 
-entryPartial :: H.Html -> H.Html
-entryPartial = H.div ! A.class_ "entry"
-
 info :: Text -> H.Html
 info = (H.div ! A.class_ "info") . H.toHtml
 
--- Rename these to format
--- It should accept Renderable a -- like below
--- format :: Renderable a => a -> H.Html
-
-
-
-
 renderEntry :: PageOptions -> H.Html -> H.Html
 renderEntry opts entry =
-  page opts $ entryPartial entry
+  page opts $ entry
 
 renderEntries :: PageOptions -> [H.Html] -> H.Html
 renderEntries opts entries = 
-  page opts $ do
-    mconcat $ map entryPartial entries
+  page opts $ mconcat $ entries
 
 aboutMe :: H.Html
 aboutMe = do
