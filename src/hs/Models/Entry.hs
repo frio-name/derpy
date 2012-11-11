@@ -48,4 +48,4 @@ retrieve source loadable = do
 -- I don't like this -- I'd like it to be a Loadable a => FilePath -> IO [a]
 -- but oh well, let's just get it up and running for now...
 list :: FilePath -> IO [FilePath]
-list = getDirectoryContents
+list path = getDirectoryContents path >>= (return . sort)
