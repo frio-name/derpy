@@ -37,10 +37,10 @@ instance Renderable Entry where
 instance M.Dated Entry where
   publishedOn = publishedOn
 
-
+renderEntry :: Entry -> H.Html
 renderEntry entry = do
   H.div ! A.class_ "entry" $ do
-    entry
+    render entry
     H.span ! A.class_ "meta" $ (H.toHtml . showGregorian . publishedOn) entry
   
 entryWriterOpts :: WriterOptions
