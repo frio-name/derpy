@@ -8,6 +8,9 @@
   Twitter: @nzfrio
   Location: Auckland
 
+/* THANKS */
+  subtlepatterns for the background
+
 /* SITE */
   Standards: HTML5, CSS3
   Components: Modernizr, Bootstrap
